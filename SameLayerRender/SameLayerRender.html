@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>SameLayerRender</title>
+</head>
+
+<!-- 前端部分只是写一个Demo示例，细节部分没有处理，按照正常做法应该是每一个支持同层渲染的元素封装成一个组件，内部根据所在环境进行判断，展示成相对应的元素 -->
+
+<body>
+    <div>
+        <h3>input</h3>
+        <div class="native_render native_render_input" native-render-type="input">
+            <input style="width: 90%; height: 50%;"/>
+            <div class="child">Input区域</div>
+        </div>
+
+        <h3 style="margin-top: 50px;">textarea</h3>
+        <div class="native_render native_render_textarea" native-render-type="textarea">
+            <textarea style="width: 90%; height: 90%;"></textarea>
+            <div class="child">textarea区域</div>
+        </div>
+
+        <h3 style="margin-top: 50px;">button，该组件不会被原生组件替换，目的是测试同层渲染后，HTML组件能够正常使用</h3>
+        <button onclick="clickButton()" style="height: 50px; width: 200px;">点击按钮</button>
+
+        <h3 style="margin-top: 50px;">给一个div，目的使页面滚动起来，使能够看出原生组件与HTML组件在一个层级上</h3>
+        <div style="width: 100%; height: 800px; background-color: gainsboro;"></div>
+    </div>
+</body>
+<script>
+
+    function clickButton() {
+        alert("点击按钮")
+    }
+
+    // 管理同层渲染组件, 通知原生创建同层渲染组件
+    function insertNativeComponents() {
+        var nativeRenderArr = document.getElementsByClassName("native_render");
+        for (var i = 0; i < nativeRenderArr.length; i++) {
+            var nativeRender = nativeRenderArr[i];
+            var type = nativeRender.getAttribute("native-render-type");
+            if (!type) continue;
+            var frame = nativeRender.getBoundingClientRect();
+            var args = {
+                "frame": {
+                    "top": frame.top,
+                    "left": frame.left,
+                    "width": frame.width,
+                    "height": frame.height
+                },
+            };
+            nativeInvoke(type, i, args);
+        }
+    }
+
+    function nativeInvoke(type, index, args) {
+        var platform = "ios";
+        if (platform === "ios") {
+            try {
+                window.webkit.messageHandlers.nativeRender.postMessage({
+                    "type": type,
+                    "index": index,
+                    "args": args
+                });
+            } catch (error) {
+                console.log(error)
+            }
+        } else if (platform === "Android") {
+            //TODO:
+        }
+    }
+
+    setTimeout("insertNativeComponents()", 100);
+
+</script>
+
+<style>
+    .native_render_input {
+        height: 40px;
+    }
+
+    .native_render_textarea {
+        height: 100px;
+    }
+
+    .native_render {
+        overflow: scroll;
+        /* 低版本需要 */
+        -webkit-overflow-scrolling: touch;
+        width: 300px;
+    }
+
+    .child {
+        visibility: hidden;
+        height: 200%;
+    }
+</style>
+
+</html>
