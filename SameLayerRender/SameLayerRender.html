@@ -37,7 +37,7 @@
         alert("点击按钮")
     }
 
-    // 管理同层渲染组件, 通知原生创建同层渲染组件
+    // 获取需要转换成原生组件的H5组件，并将H5组件的索引、类型、Frame相关信息通知给客户端。
     function insertNativeComponents() {
         var nativeRenderArr = document.getElementsByClassName("native_render");
         for (var i = 0; i < nativeRenderArr.length; i++) {
@@ -57,6 +57,13 @@
         }
     }
 
+    /**
+     * 将相关信息发送给客户端
+     * 
+     * type: 组件类型，客户端根据该字段生成对应原生组件
+     * index：组件索引，客户端根据该字段获取对应的WkWebView
+     * args：相关参数，目前携带H5组件的Frame信息
+     */
     function nativeInvoke(type, index, args) {
         var platform = "ios";
         if (platform === "ios") {
